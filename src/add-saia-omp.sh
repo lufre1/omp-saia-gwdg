@@ -16,13 +16,20 @@ SAIA_BASE_URL="${SAIA_BASE_URL:-https://chat-ai.academiccloud.de/v1}"
 # environment-variable name, omp's native resolution) and stored in
 # ~/.omp/agent/.env. The raw key is never written into models.yml.
 #
+# With extra keys (SAIA_API_KEYS_EXTRA / --extra-keys / --extra-keys-file) omp
+# is pointed at the local saia-keyring proxy instead, which swaps to the next
+# key when the active one is revoked, drained or rate limited (saia-keyring.sh).
+#
 # Usage:
 #   SAIA_API_KEY="your-key" ./add-saia-omp.sh
 #   ./add-saia-omp.sh --key "your-key"
 #   ./add-saia-omp.sh --key-file ~/.local/share/opencode/auth.json
+#   SAIA_API_KEYS_EXTRA="key2,key3" ./add-saia-omp.sh --key "your-key"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODELS_FILE="${SCRIPT_DIR}/models.txt"
+# shellcheck source=saia-keyring.sh
+source "${SCRIPT_DIR}/saia-keyring.sh"
 
 # ── Parse arguments ──────────────────────────────────────────────────
 ASSUME_YES=0
@@ -44,6 +51,10 @@ while [[ $# -gt 0 ]]; do
       KEY_FILE="$2"
       shift 2
       ;;
+    --extra-keys|--extra-keys-file|--keyring|--no-keyring)
+      keyring_arg "$@"
+      shift "$KEYRING_SHIFT"
+      ;;
     -h|--help)
       echo "Usage: SAIA_API_KEY=... ./add-saia-omp.sh [--key <key> | --key-file <path>]"
       echo ""
@@ -51,6 +62,7 @@ while [[ $# -gt 0 ]]; do
       echo "  --key <value>       SAIA API key (overrides SAIA_API_KEY env)"
       echo "  --key-file <path>   File containing the SAIA API key"
       echo "  -y, --yes           Install the agent without asking (for non-TTY runs)"
+      keyring_usage
       echo "  -h, --help          Show this help"
       echo ""
       echo "The API key is taken from:"
@@ -207,6 +219,10 @@ fi
 chmod 600 "$ENV_FILE"
 echo "Persisted SAIA_API_KEY to $ENV_FILE"
 
+# ── Automatic key swap (2+ keys) ─────────────────────────────────────
+# Sets SAIA_EFFECTIVE_BASE_URL: the local proxy when it is up, else SAIA itself.
+keyring_setup "$SAIA_KEY"
+
 # ── Write ~/.omp/agent/models.yml ────────────────────────────────────
 MODELS_YML="$AGENT_DIR/models.yml"
 DEFAULT_MODEL="${SAIA_DEFAULT_MODEL:-deepseek-v4-flash-0731}"
@@ -230,7 +246,7 @@ declare -A MODEL_MAXTOK=(
 {
   echo "providers:"
   echo "  gwdg-saia:"
-  echo "    baseUrl: $SAIA_BASE_URL"
+  echo "    baseUrl: $SAIA_EFFECTIVE_BASE_URL"
   echo "    api: openai-completions"
   echo "    apiKey: SAIA_API_KEY"
   echo "    models:"
@@ -263,7 +279,7 @@ chmod 600 "$CONFIG_YML"
 echo ""
 echo "✓ GWDG SAIA provider configured for omp!"
 echo "  Agent dir: $AGENT_DIR"
-echo "  Base URL: $SAIA_BASE_URL"
+echo "  Base URL: $SAIA_EFFECTIVE_BASE_URL"
 echo "  Default model: gwdg-saia/$DEFAULT_MODEL"
 echo "  Models: ${#MODELS[@]} ready SAIA models"
 echo ""
