@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Base URL override for tests and local gateways (default: production SAIA).
+SAIA_BASE_URL="${SAIA_BASE_URL:-https://chat-ai.academiccloud.de/v1}"
+
 # add-saia-omp.sh — Add GWDG SAIA provider to omp (oh-my-pi)
 #
 # Reads SAIA API key from environment variable SAIA_API_KEY or --key/--key-file.
@@ -227,7 +230,7 @@ declare -A MODEL_MAXTOK=(
 {
   echo "providers:"
   echo "  gwdg-saia:"
-  echo "    baseUrl: https://chat-ai.academiccloud.de/v1"
+  echo "    baseUrl: $SAIA_BASE_URL"
   echo "    api: openai-completions"
   echo "    apiKey: SAIA_API_KEY"
   echo "    models:"
@@ -260,7 +263,7 @@ chmod 600 "$CONFIG_YML"
 echo ""
 echo "✓ GWDG SAIA provider configured for omp!"
 echo "  Agent dir: $AGENT_DIR"
-echo "  Base URL: https://chat-ai.academiccloud.de/v1"
+echo "  Base URL: $SAIA_BASE_URL"
 echo "  Default model: gwdg-saia/$DEFAULT_MODEL"
 echo "  Models: ${#MODELS[@]} ready SAIA models"
 echo ""

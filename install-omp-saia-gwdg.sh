@@ -2,7 +2,7 @@
 #
 # install-omp-saia-gwdg.sh — GENERATED FILE, DO NOT EDIT.
 # Regenerate with: ./build.sh  (in the omp-saia-gwdg repo)
-# Source: omp-saia-gwdg commit e091027, packed 2026-09-30T05:54:14Z
+# Source: omp-saia-gwdg commit 1b58dd1-dirty, packed 2026-10-05T10:01:23Z
 #
 # Installs the GWDG SAIA setup for omp: provider + models + default model.
 
@@ -106,6 +106,9 @@ mkdir -p "$EXTRACT_DIR/src"
 cat >"$EXTRACT_DIR/src/add-saia-omp.sh" <<'__OSG_EOF__'
 #!/usr/bin/env bash
 set -euo pipefail
+
+# Base URL override for tests and local gateways (default: production SAIA).
+SAIA_BASE_URL="${SAIA_BASE_URL:-https://chat-ai.academiccloud.de/v1}"
 
 # add-saia-omp.sh — Add GWDG SAIA provider to omp (oh-my-pi)
 #
@@ -333,7 +336,7 @@ declare -A MODEL_MAXTOK=(
 {
   echo "providers:"
   echo "  gwdg-saia:"
-  echo "    baseUrl: https://chat-ai.academiccloud.de/v1"
+  echo "    baseUrl: $SAIA_BASE_URL"
   echo "    api: openai-completions"
   echo "    apiKey: SAIA_API_KEY"
   echo "    models:"
@@ -366,7 +369,7 @@ chmod 600 "$CONFIG_YML"
 echo ""
 echo "✓ GWDG SAIA provider configured for omp!"
 echo "  Agent dir: $AGENT_DIR"
-echo "  Base URL: https://chat-ai.academiccloud.de/v1"
+echo "  Base URL: $SAIA_BASE_URL"
 echo "  Default model: gwdg-saia/$DEFAULT_MODEL"
 echo "  Models: ${#MODELS[@]} ready SAIA models"
 echo ""
