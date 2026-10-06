@@ -16,15 +16,16 @@ SAIA_BASE_URL="${SAIA_BASE_URL:-https://chat-ai.academiccloud.de/v1}"
 # environment-variable name, omp's native resolution) and stored in
 # ~/.omp/agent/.env. The raw key is never written into models.yml.
 #
-# With extra keys (SAIA_API_KEYS_EXTRA / --extra-keys / --extra-keys-file) omp
-# is pointed at the local saia-keyring proxy instead, which swaps to the next
-# key when the active one is revoked, drained or rate limited (saia-keyring.sh).
+# With --keyring (opt-in) and extra keys (SAIA_API_KEYS_EXTRA / --extra-keys /
+# --extra-keys-file) omp is pointed at the local saia-keyring proxy instead,
+# which swaps to the next key when the active one is revoked, drained or rate
+# limited (saia-keyring.sh).
 #
 # Usage:
 #   SAIA_API_KEY="your-key" ./add-saia-omp.sh
 #   ./add-saia-omp.sh --key "your-key"
 #   ./add-saia-omp.sh --key-file ~/.local/share/opencode/auth.json
-#   SAIA_API_KEYS_EXTRA="key2,key3" ./add-saia-omp.sh --key "your-key"
+#   SAIA_API_KEYS_EXTRA="key2,key3" ./add-saia-omp.sh --key "your-key" --keyring
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODELS_FILE="${SCRIPT_DIR}/models.txt"
@@ -219,7 +220,7 @@ fi
 chmod 600 "$ENV_FILE"
 echo "Persisted SAIA_API_KEY to $ENV_FILE"
 
-# ── Automatic key swap (2+ keys) ─────────────────────────────────────
+# ── Automatic key swap (--keyring) ───────────────────────────────────
 # Sets SAIA_EFFECTIVE_BASE_URL: the local proxy when it is up, else SAIA itself.
 keyring_setup "$SAIA_KEY"
 

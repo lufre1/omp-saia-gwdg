@@ -20,7 +20,7 @@ This one-shot installer:
   (`apiKey: SAIA_API_KEY`, a bare env-var name — the raw key never lands in models.yml)
 - Writes `~/.omp/agent/config.yml` making SAIA the default model (`modelRoles.default`)
 - Persists the key as `SAIA_API_KEY` in `~/.omp/agent/.env` (chmod 600), which omp loads natively
-- With extra keys (`SAIA_API_KEYS_EXTRA="key2,key3"`), routes omp through a local
+- Optional, with `--keyring`: routes omp through a local
   key-rotating proxy that swaps keys automatically (see *Multiple keys* below)
 
 Existing `models.yml` and `config.yml` are backed up to `.bak-<timestamp>` first.
@@ -35,20 +35,20 @@ omp models gwdg-saia             # list the SAIA models
 
 ## Multiple keys: automatic key swap
 
-SAIA rate limits are per key (30/min, 200/hour, 1000/day, 3000/month). Give the
-installer extra keys and omp swaps to the next one by itself when the active key is
-revoked (401/403), drained (its hour/day/month budget nearly used up) or rate limited
-(429) — the same rotation the opencode setup does.
+SAIA rate limits are per key (30/min, 200/hour, 1000/day, 3000/month). Opt in with
+`--keyring`, give the installer extra keys, and omp swaps to the next one by itself when
+the active key is revoked (401/403), drained (its hour/day/month budget nearly used up)
+or rate limited (429) — the same rotation the opencode setup does.
 
 ```bash
 # Extra keys via the environment, so they never show up in `ps`
-SAIA_API_KEYS_EXTRA="key2,key3" bash install-omp-saia-gwdg.sh --yes
+SAIA_API_KEYS_EXTRA="key2,key3" bash install-omp-saia-gwdg.sh --yes --keyring
 
 # Or reuse the extra keys of an opencode setup
-bash install-omp-saia-gwdg.sh --yes --extra-keys-file ~/.local/share/opencode/saia-gwdg-keys.json
+bash install-omp-saia-gwdg.sh --yes --keyring --extra-keys-file ~/.local/share/opencode/saia-gwdg-keys.json
 ```
 
-With 2+ keys the installer starts **saia-keyring**, a small local proxy
+With `--keyring` the installer starts **saia-keyring**, a small local proxy
 (`~/.local/share/saia-keyring/saia_keyring.py`, stdlib Python 3), and points the
 `baseUrl` in `~/.omp/agent/models.yml` at `http://127.0.0.1:8788/v1` instead of SAIA.
 omp keeps sending its usual key; the proxy only serves requests carrying one of the
@@ -62,11 +62,11 @@ starts — a stream in progress is never cut over.
 | Status | `saia-keyring status` — per-key budget, the active key, rejected keys |
 | Log | `~/.cache/saia-keyring/proxy.log` |
 | Service | systemd user unit `saia-keyring` (Linux), launchd agent `de.gwdg.saia-keyring` (macOS), otherwise a line in your shell rc |
-| Turn off | re-run with `--no-keyring`: omp talks to SAIA directly again |
+| Turn off | re-run without `--keyring`: omp talks to SAIA directly again |
 
-With a single key nothing changes: omp talks to SAIA directly, as before. When every
-key is out, omp shows why — e.g. `All 3 SAIA key(s) rejected by SAIA (...) — the key(s)
-are revoked or expired`.
+Without `--keyring` none of this is installed: omp talks to SAIA directly with one key,
+as before (extra keys are then ignored). When every key is out, omp shows why — e.g.
+`All 3 SAIA key(s) rejected by SAIA (...) — the key(s) are revoked or expired`.
 
 ## What's included
 
@@ -87,7 +87,7 @@ SAIA_API_KEY → install-omp-saia-gwdg.sh → [omp install] → src/add-saia-omp
                                                                                 ├─ ~/.omp/agent/config.yml
                                                                                 └─ ~/.omp/agent/.env
                                                                                           │
-                                         (2+ keys: saia-keyring on 127.0.0.1:8788) ──────┤
+                                       (--keyring: saia-keyring on 127.0.0.1:8788) ──────┤
                                                                                           ▼
                                                               https://chat-ai.academiccloud.de/v1
 ```

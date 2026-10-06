@@ -76,11 +76,12 @@ Options:
   -y, --yes           answer yes to prompts (e.g. installing omp)
       --key <value>   SAIA API key (overrides SAIA_API_KEY env)
       --key-file <p>  file containing the SAIA API key
-      --extra-keys <k2,k3>      extra SAIA keys for automatic failover
+      --extra-keys <k2,k3>      with --keyring: extra SAIA keys to swap to
                                 (or SAIA_API_KEYS_EXTRA, which keeps them out of ps)
-      --extra-keys-file <path>  extra keys from {"keys": [...]} (opencode's
+      --extra-keys-file <path>  with --keyring: extra keys from {"keys": [...]} (opencode's
                                 saia-gwdg-keys.json) or one key per line
-      --keyring / --no-keyring  force the key-rotating proxy on / off
+      --keyring                 opt in: route through the local key-rotating proxy
+      --no-keyring              talk to SAIA directly with one key (the default)
   -h, --help          show this help
 
 The API key is taken from --key, --key-file or the SAIA_API_KEY environment
@@ -88,7 +89,7 @@ variable; if none of them is set, you are prompted for it. The key is persisted
 to ~/.omp/agent/.env, which omp loads natively.
 Existing ~/.omp/agent/models.yml and config.yml are backed up to .bak-<timestamp>/ first.
 
-With 2+ keys omp talks to a local proxy (saia-keyring, 127.0.0.1:8788) that swaps
+With --keyring omp talks to a local proxy (saia-keyring, 127.0.0.1:8788) that swaps
 to the next key when the active one is revoked, drained or rate limited.
 USAGE
 }
