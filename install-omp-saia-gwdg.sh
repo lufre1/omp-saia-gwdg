@@ -2,7 +2,7 @@
 #
 # install-omp-saia-gwdg.sh — GENERATED FILE, DO NOT EDIT.
 # Regenerate with: ./build.sh  (in the omp-saia-gwdg repo)
-# Source: omp-saia-gwdg commit 305113f, packed 2026-10-06T06:16:27Z
+# Source: omp-saia-gwdg commit fc2fefd, packed 2026-10-06T06:56:13Z
 #
 # Installs the GWDG SAIA setup for omp: provider + models + default model.
 
@@ -432,7 +432,7 @@ cat >"$EXTRACT_DIR/src/saia-keyring.sh" <<'__OSG_EOF__'
 # shellcheck shell=bash
 # saia-keyring.sh — automatic SAIA key swap for a harness installer (sourced).
 #
-# Vendored byte-identical from opencode-extras/keyring/ into the src/ of every
+# Vendored byte-identical from opencode-saia-gwdg/keyring/ into the src/ of every
 # <harness>-saia installer, next to saia_keyring.py. Edit it there and run
 # keyring/sync.sh — never edit a vendored copy.
 #
